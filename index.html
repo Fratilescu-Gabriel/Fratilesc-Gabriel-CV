@@ -3,365 +3,870 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CV Gabriel Frățilescu - RPG Edition</title>
+    <title>CV Gabriel Frățilescu - RPG Realistic</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap');
 
         body {
             margin: 0;
             padding: 0;
-            background-color: #1a1a2e;
-            color: #fff;
+            background-color: #000;
             font-family: 'Roboto', sans-serif;
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            color: white;
+            user-select: none;
+            image-rendering: pixelated;
         }
 
-        #game-wrapper {
+        #game-container {
             position: relative;
-            width: 800px;
-            height: 600px;
+            width: 100vw;
+            height: 100vh;
             overflow: hidden;
-            border: 4px solid #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
-            background-color: #2b2b2b;
+            background: #2b2b2b;
         }
 
-        /* The 2.5D Isometric Map */
-        #map {
+        #world {
             position: absolute;
-            width: 2000px;
-            height: 2000px;
-            background: 
-                linear-gradient(rgba(46, 139, 87, 0.8), rgba(46, 139, 87, 0.8)),
-                radial-gradient(circle at 50% 50%, #4a7c59, #2d4c37);
-            background-size: 100px 100px;
-            background-image: 
-                linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px);
-            transform-style: preserve-3d;
-            transform: rotateX(60deg) rotateZ(-45deg);
-            top: -700px;
-            left: -600px;
-            transition: transform 0.1s;
+            top: 0;
+            left: 0;
+            transform-origin: 0 0;
         }
 
-        /* Entities on the map (billboarding effect to stand straight up) */
+        #ground {
+            position: absolute;
+            width: 4000px;
+            height: 4000px;
+            left: -2000px;
+            top: -2000px;
+            background-color: #558b2f;
+            background-image: 
+                radial-gradient(#4b7c2a 15%, transparent 16%),
+                radial-gradient(#4b7c2a 15%, transparent 16%);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            z-index: 0;
+        }
+
+        .path-tile {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background-color: #a09d94;
+            background-image: 
+                radial-gradient(#8b8880 20%, transparent 25%),
+                radial-gradient(#b5b2a9 20%, transparent 25%);
+            background-size: 16px 16px;
+            background-position: 0 0, 8px 8px;
+            border-radius: 4px;
+            z-index: 1;
+        }
+
         .entity {
             position: absolute;
-            transform-origin: bottom center;
-            transform: rotateZ(45deg) rotateX(-60deg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-        }
-
-        .building-model {
-            width: 60px;
-            height: 80px;
-            background-color: #8b5a2b;
-            border: 3px solid #5c3a21;
-            border-radius: 5px 5px 0 0;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-            position: relative;
-        }
-
-        .building-model::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 20px;
-            width: 20px;
-            height: 30px;
-            background: #3e2312;
-            border-radius: 3px 3px 0 0;
-        }
-
-        .building-label {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 10px;
-            color: #fff;
-            text-shadow: 2px 2px 0 #000;
-            margin-bottom: 5px;
-            text-align: center;
-            white-space: nowrap;
         }
 
         #player {
-            width: 30px;
-            height: 40px;
-            background-color: #e74c3c;
-            border: 2px solid #c0392b;
-            border-radius: 15px 15px 5px 5px;
-            z-index: 100;
-            transition: transform 0.1s;
+            width: 32px;
+            height: 48px;
+            margin-left: -16px;
+            margin-top: -44px;
         }
 
-        /* UI Overlays */
-        #instructions {
+        .player-shadow {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.7);
-            padding: 10px;
-            border-radius: 5px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 10px;
-            color: #ffd700;
-            z-index: 200;
+            bottom: 0px;
+            left: 4px;
+            width: 24px;
+            height: 10px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 50%;
+            z-index: 1;
         }
 
-        #modal {
+        .player-sprite {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            width: 80%;
-            max-height: 80%;
-            background: rgba(20, 20, 40, 0.95);
-            border: 4px solid #4facfe;
-            border-radius: 10px;
-            padding: 20px;
-            z-index: 300;
-            overflow-y: auto;
-            opacity: 0;
-            transition: all 0.3s ease-in-out;
-            box-shadow: 0 0 30px rgba(79, 172, 254, 0.5);
+            bottom: 4px;
+            left: 0;
+            width: 32px;
+            height: 44px;
+            z-index: 2;
         }
 
-        #modal.active {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
-
-        #modal h2 {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 16px;
-            color: #4facfe;
-            margin-top: 0;
-            border-bottom: 2px solid #4facfe;
-            padding-bottom: 10px;
-        }
-
-        #modal p, #modal li {
-            font-size: 14px;
-            line-height: 1.6;
-            margin-bottom: 10px;
+        .player-sprite::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 8px;
+            width: 16px;
+            height: 20px;
+            background: #2980b9;
+            border: 2px solid #1c2833;
+            border-radius: 4px;
         }
         
-        .cite {
-            color: #888;
-            font-size: 0.8em;
-            font-style: italic;
+        .player-sprite::after {
+            content: '';
+            position: absolute;
+            bottom: 18px;
+            left: 4px;
+            width: 24px;
+            height: 24px;
+            background: #f5cba7;
+            border: 2px solid #1c2833;
+            border-radius: 8px;
+            box-shadow: inset 0 10px 0 #5c3a21;
         }
+
+        .house {
+            width: 140px;
+            height: 140px;
+            margin-left: -70px;
+            margin-top: -120px;
+        }
+
+        .house-roof {
+            position: absolute;
+            top: 0;
+            left: -10px;
+            width: 160px;
+            height: 70px;
+            background: #c0392b;
+            clip-path: polygon(20px 0%, 140px 0%, 160px 100%, 0% 100%);
+            border-bottom: 6px solid #7b241c;
+            box-shadow: inset 0 -10px 20px rgba(0,0,0,0.3);
+            z-index: 3;
+        }
+
+        .house-wall {
+            position: absolute;
+            bottom: 0;
+            left: 10px;
+            width: 120px;
+            height: 70px;
+            background-color: #e5e7e9;
+            background-image: 
+                linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px),
+                linear-gradient(0deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            border: 2px solid #5d6d7e;
+            box-shadow: inset 0 20px 20px rgba(0,0,0,0.1);
+            z-index: 2;
+        }
+
+        .house-door {
+            position: absolute;
+            bottom: 0;
+            left: 46px;
+            width: 28px;
+            height: 40px;
+            background: #6e2c00;
+            border: 2px solid #1c2833;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            box-shadow: inset -4px 0 0 rgba(0,0,0,0.3);
+        }
+
+        .house-window {
+            position: absolute;
+            top: 20px;
+            width: 20px;
+            height: 24px;
+            background: #85c1e9;
+            border: 2px solid #1c2833;
+            box-shadow: inset -4px -4px 0 rgba(255,255,255,0.4);
+        }
+
+        .window-l { left: 12px; }
+        .window-r { right: 12px; }
+
+        .signpost {
+            position: absolute;
+            bottom: 0;
+            right: -20px;
+            width: 50px;
+            background: #f5b041;
+            border: 2px solid #7e5109;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 6px;
+            color: #000;
+            text-align: center;
+            padding: 4px;
+            border-radius: 2px;
+            z-index: 4;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+        }
+
+        .sign-stick {
+            position: absolute;
+            bottom: -10px;
+            right: 0px;
+            width: 6px;
+            height: 15px;
+            background: #7e5109;
+            z-index: 3;
+        }
+
+        .tree {
+            width: 48px;
+            height: 80px;
+            margin-left: -24px;
+            margin-top: -70px;
+        }
+
+        .tree-shadow {
+            position: absolute;
+            bottom: -2px;
+            left: 4px;
+            width: 40px;
+            height: 16px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .tree-trunk {
+            position: absolute;
+            bottom: 4px;
+            left: 20px;
+            width: 8px;
+            height: 20px;
+            background: #5d4037;
+            border-radius: 2px;
+            z-index: 2;
+        }
+
+        .tree-leaves {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 48px;
+            height: 60px;
+            background: #1b5e20;
+            border-radius: 40% 40% 50% 50%;
+            border: 2px solid #003300;
+            box-shadow: inset -10px -10px 0 rgba(0,0,0,0.3);
+            z-index: 3;
+        }
+
+        .bird {
+            width: 12px;
+            height: 12px;
+            z-index: 20000;
+            display: none;
+            margin-left: -6px;
+            margin-top: -6px;
+        }
+
+        .bird-body {
+            position: absolute;
+            width: 12px;
+            height: 8px;
+            background: #333;
+            border-radius: 50%;
+            top: 2px;
+        }
+
+        .bird-wing-l, .bird-wing-r {
+            position: absolute;
+            width: 6px;
+            height: 4px;
+            background: #222;
+            border-radius: 50%;
+            top: 4px;
+        }
+
+        .bird-wing-l { left: -4px; transform-origin: right center; }
+        .bird-wing-r { right: -4px; transform-origin: left center; }
+
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 100000;
+        }
+
+        #top-controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            pointer-events: auto;
+        }
+
+        #music-btn {
+            background: #1a1a2e;
+            color: #f1c40f;
+            border: 2px solid #f1c40f;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        #music-btn:active {
+            transform: translateY(2px);
+        }
+
+        #instructions {
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 15px; margin: 15px;
+            border: 2px solid #fff;
+            border-radius: 8px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px; line-height: 1.6;
+            display: inline-block;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        #interaction-prompt {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            color: #000;
+            padding: 10px 20px;
+            border: 4px solid #000;
+            border-radius: 20px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            display: none;
+            animation: float 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes float {
+            0% { transform: translate(-50%, 0); }
+            100% { transform: translate(-50%, -10px); }
+        }
+
+        #dialog-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            max-width: 800px;
+            background: #1a1a2e;
+            border: 4px solid #f1c40f;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            display: none;
+            pointer-events: auto;
+        }
+
+        #dialog-box.active { display: flex; }
+
+        #npc-portrait {
+            width: 80px; height: 80px;
+            background-color: #2980b9;
+            border: 3px solid #fff;
+            border-radius: 8px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        #npc-portrait::after {
+            content: 'G';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 40px; color: white;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .dialog-content-wrapper { flex-grow: 1; }
+
+        #dialog-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px; color: #f1c40f;
+            margin: 0 0 15px 0; text-transform: uppercase;
+        }
+
+        #dialog-text {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px; line-height: 1.8;
+            color: #ecf0f1; margin: 0 0 15px 0;
+            min-height: 45px;
+        }
+
+        #dialog-prompt {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px; color: #7f8c8d;
+            text-align: right;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <div id="game-wrapper">
+    <audio id="bg-music" loop>
+        <source src="https://cdn.pixabay.com/download/audio/2021/08/25/audio_8ece3f4e15.mp3?filename=a-soft-wind-19965.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="game-container">
+        <div id="world">
+            <div id="ground"></div>
+            <div id="paths-container"></div>
+        </div>
+    </div>
+
+    <div id="ui-layer">
         <div id="instructions">
-            Utilizează W A S D sau Săgețile <br><br>
-            pentru a explora harta CV-ului!
+            [W A S D] sau [Săgeți] pentru mișcare<br><br>
+            Apropie-te de o casă și apasă [SPACE]<br>
+            pentru a descoperi secțiunea din CV!
         </div>
 
-        <div id="map">
-            <!-- Entities injected via JS -->
-            <div id="player-container" class="entity" style="left: 1000px; top: 1000px;">
-                <div class="building-label">Gabriel</div>
-                <div id="player"></div>
+        <div id="top-controls">
+            <button id="music-btn">🎵 Play Music</button>
+        </div>
+        
+        <div id="interaction-prompt">Apasă SPACE pentru a citi</div>
+
+        <div id="dialog-box">
+            <div id="npc-portrait"></div>
+            <div class="dialog-content-wrapper">
+                <h3 id="dialog-title"></h3>
+                <p id="dialog-text"></p>
+                <div id="dialog-prompt">Apasă SPACE ➔</div>
             </div>
-        </div>
-
-        <div id="modal">
-            <h2 id="modal-title">Titlu</h2>
-            <div id="modal-content">Conținut</div>
         </div>
     </div>
 
     <script>
-        // --- DATA EXTRACTED FROM CV ---
-        const cvData = {
-            intro: {
-                title: "Informații Personale & Profil",
-                content: `
-                    <p><b>Nume:</b> Gabriel Frățilescu <span class="cite">[cite: 1]</span></p>
-                    <p><b>Contact:</b> fr.info2903@gmail.com | 0774625054 | str. 1 Mai, nr. 92, Petrești <span class="cite">[cite: 1]</span></p>
-                    <p><b>Despre mine:</b> Student la Facultatea de Automatică și Ingineria Sistemelor - UTCN, pasionat de programare. Cunoștințe de bază în dezvoltarea algoritmilor AI și sisteme embedded. <span class="cite">[cite: 1]</span></p>
-                    <p>Proactiv, determinat, adaptabil, flexibil și colaborare bună în echipe. <span class="cite">[cite: 1]</span></p>
-                `
+        const cvCategories = [
+            {
+                id: "info", title: "Informații Personale",
+                pages: [
+                    "Salut! Acestea sunt informațiile mele de bază.",
+                    "Telefon: 0774625054.",
+                    "Email: fr.info2903@gmail.com.",
+                    "Adresă: str. 1 Mai, nr. 92, Petrești, 515850, Romania.",
+                    "Data Nașterii: 29.03.2006 (Naționalitate Română, Permis cat. B)."
+                ],
+                x: -250, y: -300
             },
-            skills: {
-                title: "Abilități & Limbi Străine",
-                content: `
-                    <p><b>Tehnologii:</b> Python, Matlab, PyTorch, C#, AutoCAD <span class="cite">[cite: 1]</span></p>
-                    <p><b>Limbi străine:</b> Engleză (Certificat Cambridge C1) <span class="cite">[cite: 1]</span></p>
-                    <p><b>Permis de conducere:</b> Categoria B <span class="cite">[cite: 1]</span></p>
-                `
+            {
+                id: "abilitati", title: "Abilități",
+                pages: [
+                    "Sunt pasionat de tehnologie și software.",
+                    "Limbaje și tehnologii principale:",
+                    "Python, Matlab, PyTorch, C#, AutoCAD."
+                ],
+                x: 250, y: -300
             },
-            experience: {
-                title: "Experiență de Lucru",
-                content: `
-                    <ul>
-                        <li><b>Meditator (august 2025 - Prezent):</b> Ofer meditații elevilor de liceu și gimnaziu la matematică și informatică pentru examenele naționale și admitere la UTCN. <span class="cite">[cite: 1]</span></li>
-                        <li><b>Proiectul de cercetare OPTIMDRUG (noiembrie 2025 - Prezent):</b> Studii bazate pe optimizarea și analiza algoritmilor de control a ratei de infuzie intravenoasă (propofol/remifentanil) pentru inducția stărilor de hipnoză. <span class="cite">[cite: 1]</span></li>
-                        <li><b>Lucrător Comercial, Mobel Sig S.R.L (iulie 2022 - august 2022):</b> Participarea la recepția mărfurilor, aprovizionare, procesare plăți, montare/demontare mobilier. <span class="cite">[cite: 1]</span></li>
-                    </ul>
-                `
+            {
+                id: "limbi", title: "Limbi Străine",
+                pages: [
+                    "Comunic fluent în limba Engleză.",
+                    "Dețin un Certificat Cambridge de nivel C1."
+                ],
+                x: -250, y: -100
             },
-            awards: {
-                title: "Premii & Hackathoane",
-                content: `
-                    <ul>
-                        <li><b>Premiul de cercetare, Competiția IOT Student Challenge (mai 2026):</b> Dezvoltarea proiectului de dozare autonomă de anestezie, incluzând studii de piață și costuri. <span class="cite">[cite: 1]</span></li>
-                        <li><b>Premiul 1, Hackatonul Polihack (aprilie 2026):</b> Prototiparea unui algoritm AI cu PyTorch pentru dozarea autonomă a anestezicelor, validat cu un simulator MATLAB și date reale. <span class="cite">[cite: 1]</span></li>
-                        <li><b>Premiul 2, Hackthonul Polihack (decembrie 2025):</b> Dezvoltarea unui prototip de cameră de bord inteligentă cu Computer Vision (YOLO în Python) pentru mașini vechi (detecție pietoni, semne, alerte de siguranță). <span class="cite">[cite: 1]</span></li>
-                        <li><b>Medalie de Argint, Olimpiada De Creativitate Științifică (mai 2024):</b> Simulare Python pentru transmisia de energie de la un satelit circumselenar la o bază lunară prin microunde sau laser. <span class="cite">[cite: 1]</span></li>
-                        <li><b>Premiul 2 Național, IWD Hackathon - TeensinAI (sept 2023 - iun 2024):</b> Dezvoltarea unui algoritm care preia o întrebare de la utilizator și indică locul în document unde se află răspunsul. <span class="cite">[cite: 1]</span></li>
-                    </ul>
-                `
+            {
+                id: "internship", title: "Profil & Obiective",
+                pages: [
+                    "Sunt student la Facultatea de Automatică și Ingineria Sistemelor - UTCN.",
+                    "Pasionat de programare, am cunoștințe în AI și sisteme embedded.",
+                    "Mă adaptez ușor, sunt proactiv și îmi place să lucrez în echipă."
+                ],
+                x: 250, y: -100
             },
-            education: {
-                title: "Educație & Voluntariat",
-                content: `
-                    <ul>
-                        <li><b>Licență:</b> Automatică și Ingineria Sistemelor, UTCN (octombrie 2025 - Prezent) <span class="cite">[cite: 1]</span></li>
-                        <li><b>Bacalaureat:</b> Profil Mate-Info, Colegiul Național „Lucian Blaga" Sebeș (Media 9.65, sept 2021 - iun 2025) <span class="cite">[cite: 1]</span></li>
-                        <li><b>Voluntariat:</b> Team Leader Echipa de Robotică, Star_B1T0 Robotics (sept 2021 - iun 2025). Coordonarea echipei, recrutare, departament software, atragere sponsorizări (Star Assembly Sebeș). <span class="cite">[cite: 1]</span></li>
-                        <li><b>Voluntariat:</b> Progres & Protect (2023) - Organizarea și coordonarea unor activități de grup și programe de mentorat pentru elevi de liceu. <span class="cite">[cite: 1]</span></li>
-                    </ul>
-                `
+            {
+                id: "experienta", title: "Experiență de lucru",
+                pages: [
+                    "Hai să-ți povestesc despre experiența mea.",
+                    "Din august 2025 lucrez ca Meditator autorizat (Matematică & Info).",
+                    "Din noiembrie 2025 fac parte din Proiectul de cercetare OPTIMDRUG.",
+                    "Am câștigat Premiul de cercetare la IOT Student Challenge (mai 2026).",
+                    "În 2025 și 2026 am obținut locurile 2, respectiv 1 la Hackathonul Polihack.",
+                    "Am o Medalie de Argint la Olimpiada De Creativitate Științifică (mai 2024).",
+                    "În vara anului 2022 am lucrat ca Lucrător Comercial."
+                ],
+                x: -250, y: 100
+            },
+            {
+                id: "educatie", title: "Educație",
+                pages: [
+                    "La capitolul studii:",
+                    "Am absolvit Colegiul Național 'Lucian Blaga' Sebeș (Mate-Info) cu media 9.65.",
+                    "Din octombrie 2025 sunt student la UTCN, programul Automatică și Ingineria Sistemelor."
+                ],
+                x: 250, y: 100
+            },
+            {
+                id: "premii", title: "Premii",
+                pages: [
+                    "De-a lungul anilor de liceu, am obținut multiple distincții.",
+                    "Am premii și mențiuni la etapele județene și naționale la olimpiadele de matematică, fizică și informatică."
+                ],
+                x: -250, y: 300
+            },
+            {
+                id: "voluntariat", title: "Voluntariat",
+                pages: [
+                    "Îmi place să mă implic în comunitate.",
+                    "Am fost Team Leader și șeful departamentului software la Echipa de Robotică Star_B1T0 (2021-2025).",
+                    "În 2023 am coordonat activități și programe de mentorat la Progres & Protect."
+                ],
+                x: 250, y: 300
             }
-        };
-
-        // --- GAME LOGIC ---
-        const map = document.getElementById('map');
-        const playerElement = document.getElementById('player-container');
-        const modal = document.getElementById('modal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalContent = document.getElementById('modal-content');
-
-        // Player State
-        let player = {
-            x: 1000,
-            y: 1000,
-            speed: 5,
-            width: 30,
-            height: 40
-        };
-
-        // Points of Interest (Buildings)
-        const buildings = [
-            { id: 'intro', x: 1000, y: 800, label: "Profil & Contact", color: "#3498db" },
-            { id: 'skills', x: 800, y: 1000, label: "Abilități Tehnice", color: "#9b59b6" },
-            { id: 'experience', x: 1200, y: 1000, label: "Experiență", color: "#e67e22" },
-            { id: 'awards', x: 1000, y: 1200, label: "Premii & AI", color: "#f1c40f" },
-            { id: 'education', x: 1150, y: 850, label: "Educație", color: "#2ecc71" }
         ];
 
-        // Render Buildings on Map
-        buildings.forEach(b => {
-            const el = document.createElement('div');
-            el.className = 'entity';
-            el.style.left = b.x + 'px';
-            el.style.top = b.y + 'px';
-            
-            el.innerHTML = `
-                <div class="building-label">${b.label}</div>
-                <div class="building-model" style="background-color: ${b.color};"></div>
-            `;
-            map.appendChild(el);
-            b.element = el;
+        const world = document.getElementById('world');
+        const pathsContainer = document.getElementById('paths-container');
+        const musicBtn = document.getElementById('music-btn');
+        const bgMusic = document.getElementById('bg-music');
+        
+        let playerState = { x: 0, y: 0, speed: 5, isMoving: false, activeHouse: null, inDialog: false };
+        const keys = { w: false, a: false, s: false, d: false, ' ': false, arrowup: false, arrowdown: false, arrowleft: false, arrowright: false };
+        let spacePressed = false; 
+        let musicPlaying = false;
+
+        let treesData = [];
+        let housesElements = [];
+        let birds = [];
+
+        musicBtn.addEventListener('click', () => {
+            if (musicPlaying) {
+                bgMusic.pause();
+                musicBtn.innerText = "🎵 Play Music";
+                musicPlaying = false;
+            } else {
+                bgMusic.play().catch(() => {});
+                musicBtn.innerText = "🎵 Pause Music";
+                musicPlaying = true;
+            }
         });
 
-        // Input Tracking
-        const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
+        const tileSize = 32;
+        const pathSet = new Set();
+
+        function addPathTile(x, y) {
+            const gridX = Math.round(x / tileSize) * tileSize;
+            const gridY = Math.round(y / tileSize) * tileSize;
+            const key = `${gridX},${gridY}`;
+            
+            if (!pathSet.has(key)) {
+                pathSet.add(key);
+                const tile = document.createElement('div');
+                tile.className = 'path-tile';
+                tile.style.left = gridX + 'px';
+                tile.style.top = gridY + 'px';
+                if (Math.random() > 0.5) tile.style.transform = `scaleX(-1)`;
+                if (Math.random() > 0.5) tile.style.filter = `brightness(0.9)`;
+                pathsContainer.appendChild(tile);
+            }
+        }
+
+        for (let y = -400; y <= 400; y += tileSize) {
+            addPathTile(-16, y);
+            addPathTile(16, y);
+        }
+
+        cvCategories.forEach(cat => {
+            let cx = cat.x;
+            let cy = cat.y;
+            let currX = cx > 0 ? cx - 32 : cx + 32;
+            let currY = cy + 20;
+
+            while (Math.abs(currX) > 16) {
+                addPathTile(currX, currY);
+                addPathTile(currX, currY + tileSize);
+                currX += cx > 0 ? -tileSize : tileSize;
+            }
+        });
+
+        cvCategories.forEach(cat => {
+            const houseEl = document.createElement('div');
+            houseEl.className = 'entity house';
+            houseEl.innerHTML = `
+                <div class="house-wall">
+                    <div class="house-window window-l"></div>
+                    <div class="house-window window-r"></div>
+                    <div class="house-door"></div>
+                </div>
+                <div class="house-roof"></div>
+                <div class="sign-stick"></div>
+                <div class="signpost">${cat.title}</div>
+            `;
+            houseEl.style.transform = `translate(${cat.x}px, ${cat.y}px)`;
+            world.appendChild(houseEl);
+            housesElements.push({ data: cat, el: houseEl, x: cat.x, y: cat.y });
+        });
+
+        for(let i = 0; i < 150; i++) {
+            let tx = (Math.random() - 0.5) * 2500;
+            let ty = (Math.random() - 0.5) * 2000;
+            let inExclusionZone = false;
+            
+            if (Math.abs(tx) < 150) inExclusionZone = true;
+            
+            housesElements.forEach(h => {
+                if (Math.abs(tx - h.x) < 120 && Math.abs(ty - h.y) < 120) {
+                    inExclusionZone = true;
+                }
+            });
+
+            if (inExclusionZone) continue;
+
+            const treeEl = document.createElement('div');
+            treeEl.className = 'entity tree';
+            treeEl.innerHTML = `
+                <div class="tree-shadow"></div>
+                <div class="tree-trunk"></div>
+                <div class="tree-leaves"></div>
+            `;
+            treeEl.style.transform = `translate(${tx}px, ${ty}px)`;
+            world.appendChild(treeEl);
+            treesData.push({x: tx, y: ty, el: treeEl, touched: false});
+        }
+
+        for (let i = 0; i < 15; i++) {
+            const birdEl = document.createElement('div');
+            birdEl.className = 'entity bird';
+            birdEl.innerHTML = `
+                <div class="bird-body"></div>
+                <div class="bird-wing-l"></div>
+                <div class="bird-wing-r"></div>
+            `;
+            world.appendChild(birdEl);
+            birds.push({
+                el: birdEl, active: false, x: 0, y: 0,
+                targetX: 0, targetY: 0, startX: 0, startY: 0,
+                progress: 0, speed: 0.005 + Math.random() * 0.01
+            });
+        }
+
+        const playerEl = document.createElement('div');
+        playerEl.className = 'entity';
+        playerEl.id = 'player';
+        playerEl.innerHTML = `
+            <div class="player-shadow"></div>
+            <div class="player-sprite"></div>
+        `;
+        world.appendChild(playerEl);
+
+        const promptUI = document.getElementById('interaction-prompt');
+        const dialogBox = document.getElementById('dialog-box');
+        const dialogTitle = document.getElementById('dialog-title');
+        const dialogText = document.getElementById('dialog-text');
+        const dialogPrompt = document.getElementById('dialog-prompt');
+
+        let currentDialogPages = [];
+        let currentDialogIndex = 0;
+
+        function openDialog(houseData) {
+            playerState.inDialog = true;
+            promptUI.style.display = 'none';
+            dialogTitle.innerText = houseData.title;
+            currentDialogPages = houseData.pages;
+            currentDialogIndex = 0;
+            dialogText.innerText = currentDialogPages[0];
+            dialogBox.classList.add('active');
+            for (let k in keys) keys[k] = false;
+        }
+
+        function advanceDialog() {
+            currentDialogIndex++;
+            if (currentDialogIndex < currentDialogPages.length) {
+                dialogText.innerText = currentDialogPages[currentDialogIndex];
+                if (currentDialogIndex === currentDialogPages.length - 1) {
+                    dialogPrompt.innerText = "Apasă SPACE pentru a închide";
+                } else {
+                    dialogPrompt.innerText = "Apasă SPACE ➔";
+                }
+            } else {
+                closeDialog();
+            }
+        }
+
+        function closeDialog() {
+            playerState.inDialog = false;
+            dialogBox.classList.remove('active');
+            dialogPrompt.innerText = "Apasă SPACE ➔";
+            setTimeout(() => { spacePressed = false; }, 200);
+        }
 
         window.addEventListener('keydown', (e) => {
-            if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
-            if (e.key === 'Escape') closeModal(); // Close modal on Esc
+            let k = e.key.toLowerCase();
+            if (keys.hasOwnProperty(k)) keys[k] = true;
+
+            if (e.key === ' ' && !spacePressed) {
+                spacePressed = true;
+                if (playerState.inDialog) {
+                    advanceDialog();
+                } else if (playerState.activeHouse) {
+                    openDialog(playerState.activeHouse);
+                }
+            }
         });
 
         window.addEventListener('keyup', (e) => {
-            if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
+            let k = e.key.toLowerCase();
+            if (keys.hasOwnProperty(k)) keys[k] = false;
+            if (e.key === ' ') spacePressed = false;
         });
 
-        let activeModal = null;
+        function checkInteractions() {
+            if (playerState.inDialog) return;
 
-        function checkCollisions() {
-            let collisionFound = false;
-
-            for (const b of buildings) {
-                // Simple distance-based collision detection
-                const dist = Math.sqrt(Math.pow(player.x - b.x, 2) + Math.pow(player.y - b.y, 2));
-                
-                if (dist < 60) {
-                    collisionFound = true;
-                    if (activeModal !== b.id) {
-                        openModal(b.id);
-                    }
-                    break;
+            let closestHouse = null;
+            housesElements.forEach(h => {
+                let dist = Math.hypot(playerState.x - h.x, playerState.y - h.y);
+                if (dist < 70) {
+                    closestHouse = h.data;
                 }
+            });
+
+            if (closestHouse) {
+                playerState.activeHouse = closestHouse;
+                promptUI.style.display = 'block';
+            } else {
+                playerState.activeHouse = null;
+                promptUI.style.display = 'none';
             }
+        }
 
-            if (!collisionFound && activeModal !== null) {
-                closeModal();
+        function launchBird(startX, startY) {
+            let inactiveBird = birds.find(b => !b.active);
+            if (inactiveBird && treesData.length > 1) {
+                let targetTree = treesData[Math.floor(Math.random() * treesData.length)];
+                inactiveBird.active = true;
+                inactiveBird.progress = 0;
+                inactiveBird.startX = startX;
+                inactiveBird.startY = startY - 40;
+                inactiveBird.targetX = targetTree.x;
+                inactiveBird.targetY = targetTree.y - 40;
             }
         }
 
-        function openModal(id) {
-            activeModal = id;
-            modalTitle.innerText = cvData[id].title;
-            modalContent.innerHTML = cvData[id].content;
-            modal.classList.add('active');
+        function updateDepthSorting() {
+            const BASE_Z = 10000;
+            playerEl.style.zIndex = Math.floor(playerState.y) + BASE_Z;
+
+            housesElements.forEach(h => {
+                h.el.style.zIndex = Math.floor(h.y) + BASE_Z;
+            });
+
+            treesData.forEach(t => {
+                t.el.style.zIndex = Math.floor(t.y) + BASE_Z;
+            });
         }
 
-        function closeModal() {
-            activeModal = null;
-            modal.classList.remove('active');
-        }
-
+        let time = 0;
         function update() {
-            let dx = 0;
-            let dy = 0;
+            time += 0.15;
 
-            if (keys.w || keys.ArrowUp) dy -= player.speed;
-            if (keys.s || keys.ArrowDown) dy += player.speed;
-            if (keys.a || keys.ArrowLeft) dx -= player.speed;
-            if (keys.d || keys.ArrowRight) dx += player.speed;
+            if (!playerState.inDialog) {
+                let dx = 0; let dy = 0;
+                if (keys.w || keys.arrowup) dy -= playerState.speed;
+                if (keys.s || keys.arrowdown) dy += playerState.speed;
+                if (keys.a || keys.arrowleft) dx -= playerState.speed;
+                if (keys.d || keys.arrowright) dx += playerState.speed;
 
-            // Normalize diagonal movement speed
-            if (dx !== 0 && dy !== 0) {
-                const length = Math.sqrt(dx * dx + dy * dy);
-                dx = (dx / length) * player.speed;
-                dy = (dy / length) * player.speed;
+                if (dx !== 0 && dy !== 0) { dx *= 0.707; dy *= 0.707; }
+
+                let newX = playerState.x + dx;
+                let newY = playerState.y + dy;
+                let collided = false;
+
+                for(let h of housesElements) {
+                    let wallLeft = h.x - 60;
+                    let wallRight = h.x + 60;
+                    let wallTop = h.y - 30;
+                    let wallBottom = h.y + 15;
+                    
+                    if(newX > wallLeft && newX < wallRight && newY > wallTop && newY < wallBottom) {
+                        collided = true; break;
+                    }
+                }
+
+                if (!collided) {
+                    for(let t of treesData) {
+                        if (Math.abs(newX - t.x) < 20 && Math.abs(newY - t.y) < 15) {
+                            collided = true;
+                            if (!t.touched) {
+                                t.touched = true;
+                                launchBird(t.x, t.y);
+                                setTimeout(() => { t.touched = false; }, 5000);
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                if (!collided) {
+                    playerState.x = newX;
+                    playerState.y = newY;
+                }
+                
+                playerState.isMoving = (dx !== 0 || dy !== 0);
             }
 
-            // Boundary constraints (keep player on the map)
-            if (player.x + dx > 100 && player.x + dx < 1900) player.x += dx;
-            if (player.y + dy > 100 && player.y + dy < 1900) player.y += dy;
+            if (Math.random() < 0.01) {
+                let rTree = treesData[Math.floor(Math.random() * treesData.length)];
+                launchBird(rTree.x, rTree.y);
+            }
 
-            // Apply positions
-            playerElement.style.left = player.x + 'px';
-            playerElement.style.top = player.y + 'px';
+            birds.forEach(b => {
+                if (b.active) {
+                    b.progress += b.speed;
+                    if (b.progress >= 1) {
+                        b.active = false;
+                        b.el.style.display = 'none';
+                    } else {
+                        b.el.style.display = 'block';
+                        b.x = b.startX + (b.targetX - b.startX) * b.progress;
+                        b.y = b.startY + (b.targetY - b.startY) * b.progress;
+                        
+                        let arc = Math.sin(b.progress * Math.PI) * 100;
+                        b.el.style.transform = `translate(${b.x}px, ${b.y - arc}px)`;
+                        
+                        let flap = Math.sin(Date.now() / 30) * 40;
+                        b.el.children[1].style.transform = `rotate(${flap}deg)`;
+                        b.el.children[2].style.transform = `rotate(${-flap}deg)`;
+                    }
+                }
+            });
 
-            // Center camera on player (compensating for the isometric transform offsets)
-            // The map is 2000x2000. Viewport is 800x600.
-            const targetX = -player.x + 400; 
-            const targetY = -player.y + 300;
-            map.style.transform = `rotateX(60deg) rotateZ(-45deg) translate3d(${targetX}px, ${targetY}px, 0)`;
+            let sprite = playerEl.querySelector('.player-sprite');
+            if (playerState.isMoving) {
+                let bob = Math.abs(Math.sin(time)) * 4;
+                sprite.style.transform = `translateY(${-bob}px)`;
+            } else {
+                sprite.style.transform = `translateY(0px)`;
+            }
 
-            checkCollisions();
+            if (keys.a || keys.arrowleft) {
+                playerEl.style.transform = `translate(${playerState.x}px, ${playerState.y}px) scaleX(-1)`;
+            } else if (keys.d || keys.arrowright) {
+                playerEl.style.transform = `translate(${playerState.x}px, ${playerState.y}px) scaleX(1)`;
+            } else {
+                playerEl.style.transform = `translate(${playerState.x}px, ${playerState.y}px)`;
+            }
+
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 2;
+            world.style.transform = `translate(${cx - playerState.x}px, ${cy - playerState.y}px)`;
+
+            updateDepthSorting();
+            checkInteractions();
 
             requestAnimationFrame(update);
         }
 
-        // Start Game Loop
+        updateDepthSorting();
         update();
+
     </script>
 </body>
 </html>
